@@ -104,7 +104,7 @@ def env2int(env_list, default = -1):
 my_local_rank1 = env2int(['MPI_LOCALRANKID','OMPI_COMM_WORLD_LOCAL_RANK','MV2_COMM_WORLD_LOCAL_RANK'], 0)
 os.environ["CUDA_VISIBLE_DEVICES"]=str(my_local_rank1)
 
-
+torch.cuda.init()
 ### define dlrm in PyTorch ###
 class DLRM_Net(nn.Module):
     def create_mlp(self, ln, sigmoid_layer):
