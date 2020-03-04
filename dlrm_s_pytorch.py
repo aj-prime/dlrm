@@ -65,7 +65,7 @@ import dlrm_data_pytorch as dp
 
 # numpy
 import numpy as np
-
+import os
 # onnx
 # The onnx import causes deprecation warnings every time workers
 # are spawned during testing. So, we filter out those warnings.
@@ -96,6 +96,13 @@ import sklearn.metrics
 # from torch.nn.parameter import Parameter
 
 exc = getattr(builtins, "IOError", "FileNotFoundError")
+def env2int(env_list, default = -1):
+        for e in env_list:
+            val = int(os.environ.get(e, -1))
+            if val >= 0: return val
+        return default
+my_local_rank1 = env2int(['MPI_LOCALRANKID','OMPI_COMM_WORLD_LOCAL_RANK','MV2_COMM_WORLD_LOCAL_RANK'], 0)
+os.environ["CUDA_VISIBLE_DEVICES"]=str(my_local_rank1)
 
 
 ### define dlrm in PyTorch ###
@@ -622,11 +629,13 @@ if __name__ == "__main__":
         torch.backends.cudnn.deterministic = True
         if ext_dist.my_size > 1:
             ngpus = torch.cuda.device_count()  # 1
+            ext_dist.my_local_size = 1
             if ext_dist.my_local_size > torch.cuda.device_count():
                 print("Not sufficient GPUs available... local_size = %d, ngpus = %d" % (ext_dist.my_local_size, ngpus))
                 sys.exit(1)
             ngpus = 1
-            device = torch.device("cuda", ext_dist.my_local_rank)
+            #device = torch.device("cuda", ext_dist.my_local_rank)
+            device = torch.device("cuda", 0)
         else:
             device = torch.device("cuda", 0)
             ngpus = torch.cuda.device_count()  # 1
